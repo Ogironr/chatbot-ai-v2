@@ -105,7 +105,7 @@ function renderChatHistory() {
 async function createNewChat() {
     try {
         // Crear el chat en el servidor primero
-        const response = await fetch('/save-chat', {
+        const response = await fetch('/api/save-chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -140,7 +140,7 @@ async function createNewChat() {
 
 async function loadChat(chatId) {
     try {
-        const response = await fetch(`/load-chat/${chatId}`);
+        const response = await fetch(`/api/load-chat/${chatId}`);
         const chat = await response.json();
         
         state.currentChatId = chatId;
@@ -158,7 +158,7 @@ async function loadChat(chatId) {
 
 async function deleteChat(chatId) {
     try {
-        await fetch(`/delete-chat/${chatId}`, { method: 'DELETE' });
+        await fetch(`/api/delete-chat/${chatId}`, { method: 'DELETE' });
         
         state.chats = state.chats.filter(chat => chat.id !== chatId);
         
@@ -178,7 +178,7 @@ async function deleteChat(chatId) {
 
 async function saveChatToServer(chat) {
     try {
-        await fetch('/save-chat', {
+        await fetch('/api/save-chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(chat)
@@ -199,8 +199,8 @@ async function updateChatTitle(chatId, firstMessage) {
         renderChatHistory();
         
         try {
-            await fetch(`/update-chat-title/${chatId}`, {
-                method: 'PUT',
+            await fetch(`/api/update-chat-title/${chatId}`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title })
             });
@@ -223,12 +223,12 @@ async function sendMessage() {
     renderMessage(message, 'user');
 
     try {
-        const response = await fetch('/chat', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message,
-                chatId: state.currentChatId
+                chatId: state.currentChatId,
+                message: message
             })
         });
 
@@ -273,7 +273,7 @@ async function sendMessage() {
 // Event Listeners y inicialización
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const response = await fetch('/load-chats');
+        const response = await fetch('/api/load-chats');
         const data = await response.json();
         
         state.chats = data.chats || [];

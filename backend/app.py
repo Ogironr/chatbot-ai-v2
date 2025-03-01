@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
@@ -10,7 +11,19 @@ import uuid
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
+# Obtener la ruta base del proyecto
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHATS_DIR = os.path.join(BASE_DIR, 'chats')
+
+app = Flask(__name__, 
+    static_folder=os.path.join(BASE_DIR, 'frontend-flask/static'),
+    template_folder=os.path.join(BASE_DIR, 'frontend-flask/templates')
+)
+
+# Enable CORS for Next.js frontend
+CORS(app, resources={
+    r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}
+})
 
 # Verificar API key
 api_key = os.getenv('OPENAI_API_KEY')
@@ -33,19 +46,21 @@ except Exception as e:
     print(traceback.format_exc())
     raise e
 
+# Rutas para la interfaz Flask
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/save-chat', methods=['POST'])
+# API endpoints compartidos entre Flask y Next.js
+@app.route('/api/save-chat', methods=['POST'])
 def save_chat():
     try:
         data = request.get_json()
         chat_id = str(uuid.uuid4())
         
         # Crear el directorio de chats si no existe
-        if not os.path.exists('chats'):
-            os.makedirs('chats')
+        if not os.path.exists(CHATS_DIR):
+            os.makedirs(CHATS_DIR)
         
         # Usar los primeros 30 caracteres del mensaje como título
         title = data.get('message', 'Nuevo Chat')
@@ -60,7 +75,7 @@ def save_chat():
         }
         
         # Guardar el chat
-        chat_file = f'chats/{chat_id}.json'
+        chat_file = os.path.join(CHATS_DIR, f'{chat_id}.json')
         with open(chat_file, 'w', encoding='utf-8') as f:
             json.dump(chat_data, f, ensure_ascii=False, indent=2)
         
@@ -76,7 +91,7 @@ def save_chat():
         print(f"Error al guardar el chat: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/update-chat-title/<chat_id>', methods=['POST'])
+@app.route('/api/update-chat-title/<chat_id>', methods=['POST'])
 def update_chat_title(chat_id):
     try:
         data = request.get_json()
@@ -85,7 +100,7 @@ def update_chat_title(chat_id):
         if not new_title:
             return jsonify({'error': 'No title provided'}), 400
             
-        chat_file = f'chats/{chat_id}.json'
+        chat_file = os.path.join(CHATS_DIR, f'{chat_id}.json')
         if not os.path.exists(chat_file):
             return jsonify({'error': 'Chat not found'}), 404
             
@@ -102,14 +117,14 @@ def update_chat_title(chat_id):
         print(f"Error al actualizar el título: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/load-chats', methods=['GET'])
+@app.route('/api/load-chats', methods=['GET'])
 def load_chats():
     try:
         chats = []
-        if os.path.exists('chats'):
-            for filename in os.listdir('chats'):
+        if os.path.exists(CHATS_DIR):
+            for filename in os.listdir(CHATS_DIR):
                 if filename.endswith('.json'):
-                    with open(os.path.join('chats', filename), 'r', encoding='utf-8') as f:
+                    with open(os.path.join(CHATS_DIR, filename), 'r', encoding='utf-8') as f:
                         chat_data = json.load(f)
                         chats.append({
                             'id': chat_data['id'],
@@ -123,10 +138,10 @@ def load_chats():
         print(f"Error al cargar los chats: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/load-chat/<chat_id>', methods=['GET'])
+@app.route('/api/load-chat/<chat_id>', methods=['GET'])
 def load_chat(chat_id):
     try:
-        chat_file = f'chats/{chat_id}.json'
+        chat_file = os.path.join(CHATS_DIR, f'{chat_id}.json')
         if os.path.exists(chat_file):
             with open(chat_file, 'r', encoding='utf-8') as f:
                 chat_data = json.load(f)
@@ -136,10 +151,10 @@ def load_chat(chat_id):
         print(f"Error al cargar el chat: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/delete-chat/<chat_id>', methods=['DELETE'])
+@app.route('/api/delete-chat/<chat_id>', methods=['DELETE'])
 def delete_chat(chat_id):
     try:
-        chat_file = f'chats/{chat_id}.json'
+        chat_file = os.path.join(CHATS_DIR, f'{chat_id}.json')
         if os.path.exists(chat_file):
             os.remove(chat_file)
             return jsonify({'success': True})
@@ -148,7 +163,7 @@ def delete_chat(chat_id):
         print(f"Error al eliminar el chat: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/chat', methods=['POST'])
+@app.route('/api/chat', methods=['POST'])
 def chat():
     try:
         data = request.get_json()
@@ -158,7 +173,7 @@ def chat():
         if not chat_id or not user_message:
             return jsonify({'error': 'Missing chatId or message'}), 400
         
-        chat_file = f'chats/{chat_id}.json'
+        chat_file = os.path.join(CHATS_DIR, f'{chat_id}.json')
         
         # Cargar el historial del chat
         if os.path.exists(chat_file):
@@ -198,7 +213,7 @@ def chat():
             
             # Obtener la respuesta del asistente
             assistant_message = response.choices[0].message.content
-            print(f"Mensaje del asistente: {assistant_message[:100]}...")  # Mostrar los primeros 100 caracteres
+            print(f"Mensaje del asistente: {assistant_message[:100]}...")
             
             # Guardar en el historial como 'ai' para mantener consistencia en el frontend
             chat_data['messages'].append({

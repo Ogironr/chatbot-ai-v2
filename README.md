@@ -1,26 +1,40 @@
 # ChatBot AI
 
-Un chatbot basado en la API de OpenAI, construido con Flask.
+Un chatbot basado en la API de OpenAI, con dos interfaces de usuario diferentes.
 
 ## Estructura del Proyecto
 
 ```
 chatopenai/
-├── .env                # Variables de entorno (API keys, etc.)
-├── app.py             # Aplicación principal Flask
-├── requirements.txt   # Dependencias de Python
-├── static/           # Archivos estáticos
-│   ├── css/         # Estilos CSS
-│   └── js/          # JavaScript
-├── templates/        # Plantillas HTML
-│   └── index.html   # Página principal
-└── chats/           # Almacenamiento de chats (JSON)
+├── backend/              # API Backend con Flask
+│   ├── .env             # Variables de entorno
+│   ├── app.py           # Aplicación principal Flask
+│   └── requirements.txt # Dependencias de Python
+│
+├── frontend-flask/      # Interfaz original con Flask
+│   ├── static/         # Archivos estáticos
+│   │   ├── css/       # Estilos CSS
+│   │   └── js/        # JavaScript
+│   └── templates/      # Plantillas HTML
+│       └── index.html # Página principal
+│
+├── frontend-next/      # Nueva interfaz con Next.js
+│   ├── app/           # Componentes y páginas Next.js
+│   ├── components/    # Componentes React reutilizables
+│   ├── styles/        # Estilos Tailwind
+│   └── package.json   # Dependencias de Node.js
+│
+├── chats/             # Almacenamiento de chats (JSON)
+└── git_config.json    # Configuración de GitHub (ignorado)
 ```
 
 ## Configuración
 
+### Backend (Flask)
+
 1. Crear un entorno virtual:
 ```bash
+cd backend
 python -m venv .venv
 .venv\Scripts\activate  # Windows
 ```
@@ -31,77 +45,60 @@ pip install -r requirements.txt
 ```
 
 3. Configurar variables de entorno:
-Crear un archivo `.env` con:
+Crear un archivo `.env` en la carpeta `backend` con:
 ```
 OPENAI_API_KEY=tu_api_key_aqui
 ```
 
-## Ejecutar la Aplicación
-
+4. Ejecutar el backend:
 ```bash
 python app.py
 ```
 
-La aplicación estará disponible en `http://localhost:5000`
+El backend estará disponible en `http://localhost:5000`
+
+### Frontend Flask (Interfaz Original)
+
+La interfaz original está integrada con el backend y se sirve automáticamente en `http://localhost:5000`
+
+### Frontend Next.js (Nueva Interfaz)
+
+1. Instalar dependencias:
+```bash
+cd frontend-next
+npm install
+```
+
+2. Ejecutar en modo desarrollo:
+```bash
+npm run dev
+```
+
+La nueva interfaz estará disponible en `http://localhost:3000`
 
 ## Características
 
-- Interfaz de chat en tiempo real
-- Almacenamiento persistente de conversaciones
+### Interfaz Flask
+- Diseño simple y funcional
 - Soporte para markdown y resaltado de código
 - Historial de chats
 - Edición de títulos de chat
 
-## Requisitos
-
-- Python 3.8+
-- Flask
-- OpenAI API Key
-
-## Instalación
-
-1. Clonar el repositorio:
-```bash
-git clone <url-del-repositorio>
-cd chatopenai
-```
-
-2. Crear un entorno virtual e instalar dependencias:
-```bash
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-3. Crear archivo .env con tu API key de OpenAI:
-```
-OPENAI_API_KEY=tu-api-key-aquí
-```
-
-4. Ejecutar la aplicación:
-```bash
-python app.py
-```
+### Interfaz Next.js
+- Diseño moderno con Tailwind CSS
+- Interfaz responsiva
+- Componentes React reutilizables
+- Tema oscuro/claro
+- Mejor experiencia de usuario
 
 ## Desarrollo
 
 Para contribuir al proyecto:
 
-1. Crear una nueva rama para tu característica:
-```bash
-git checkout -b feature/nueva-caracteristica
-```
-
-2. Hacer commit de tus cambios:
-```bash
-git add .
-git commit -m "Descripción de los cambios"
-```
-
-3. Subir los cambios:
-```bash
-git push origin feature/nueva-caracteristica
-```
+1. Haz un fork del repositorio
+2. Crea una rama para tu feature
+3. Haz commit de tus cambios
+4. Crea un pull request
 
 ## Licencia
 
