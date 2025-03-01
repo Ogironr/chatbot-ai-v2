@@ -22,3 +22,6 @@ chats/
 # Local development
 .DS_Store
 Thumbs.db
+
+# Git configuration
+git_config.json
