@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
     const newChatBtn = document.getElementById('newChatBtn');
-    const chatHistory = document.getElementById('chat-history');
+    const chatHistory = document.getElementById('chatHistory');
     const chatContainer = document.getElementById('chat-container');
 
     let currentChatId = null;
@@ -25,7 +25,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Cargar chats guardados al inicio
-    loadSavedChats();
+    loadSavedChats().then(() => {
+        // Si no hay chat activo, crear uno nuevo
+        if (!currentChatId) {
+            createNewChat();
+        }
+    });
 
     // Función para ajustar la altura del textarea
     function adjustTextareaHeight() {
@@ -49,6 +54,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Evento para el botón de nuevo chat
     newChatBtn.addEventListener('click', createNewChat);
+
+    async function loadSavedChats() {
+        try {
+            const response = await fetch('/load-chats');
+            if (!response.ok) {
+                throw new Error('Error al cargar los chats');
+            }
+            
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            chatHistory.innerHTML = '';
+            
+            if (data.chats && data.chats.length > 0) {
+                data.chats.forEach(chat => {
+                    addChatToHistory(chat.id, chat.title);
+                });
+                // Cargar el chat más reciente
+                await loadChat(data.chats[0].id);
+            }
+        } catch (error) {
+            console.error('Error loading chats:', error);
+            addMessageToChat('ai', `Error al cargar los chats: ${error.message}`);
+        }
+    }
 
     function createNewChat() {
         console.log('Creando nuevo chat...');
@@ -107,31 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function loadSavedChats() {
-        fetch('/load-chats')
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                chatHistory.innerHTML = '';
-                if (data.chats && data.chats.length > 0) {
-                    data.chats.forEach(chat => {
-                        addChatToHistory(chat.id, chat.title);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error loading chats:', error);
-            });
-    }
-
     function addChatToHistory(chatId, title) {
-        if (!chatHistory) {
-            console.error('Chat history element not found');
-            return;
-        }
-
         const existingChat = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
         if (existingChat) {
             existingChat.remove();
@@ -185,7 +193,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Insertar al principio del historial
         chatHistory.insertBefore(chatItem, chatHistory.firstChild);
+        
+        // Si es el único chat, hacerlo activo
+        if (chatHistory.children.length === 1) {
+            updateActiveChat(chatId);
+        }
     }
 
     async function sendMessage() {
@@ -228,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
         userInput.value = '';
         adjustTextareaHeight();
 
-        // Agregar mensaje del usuario
+        // Agregar mensaje del usuario al chat
         addMessageToChat('user', message);
 
         try {
@@ -243,6 +257,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
 
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+
             const data = await response.json();
             
             if (data.error) {
@@ -252,11 +270,78 @@ document.addEventListener('DOMContentLoaded', function() {
             // Agregar respuesta del asistente
             if (data.message) {
                 addMessageToChat('ai', data.message);
+                
+                // Actualizar el título del chat si es el primer mensaje
+                const chatItem = document.querySelector(`.chat-item[data-chat-id="${currentChatId}"]`);
+                if (chatItem && message.length > 0) {
+                    const titleSpan = chatItem.querySelector('.chat-title');
+                    const shortTitle = message.length > 30 ? message.substring(0, 27) + '...' : message;
+                    titleSpan.textContent = shortTitle;
+                    
+                    // Actualizar el título en el backend
+                    updateChatTitle(currentChatId, shortTitle);
+                }
             }
 
         } catch (error) {
             console.error('Error:', error);
             addMessageToChat('ai', `Error: ${error.message}`);
+        }
+    }
+
+    async function updateChatTitle(chatId, newTitle) {
+        try {
+            const response = await fetch(`/update-chat-title/${chatId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: newTitle
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar el título');
+            }
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            console.error('Error updating chat title:', error);
+        }
+    }
+
+    async function loadChat(chatId) {
+        try {
+            const response = await fetch(`/load-chat/${chatId}`);
+            if (!response.ok) {
+                throw new Error('Error al cargar el chat');
+            }
+            
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            currentChatId = chatId;
+            chatContainer.innerHTML = '';
+            updateActiveChat(chatId);
+            
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    addMessageToChat(msg.role, msg.content);
+                });
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            } else {
+                // Si no hay mensajes, mostrar mensaje de bienvenida
+                addMessageToChat('ai', '¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?');
+            }
+        } catch (error) {
+            console.error('Error loading chat:', error);
+            addMessageToChat('ai', `Error al cargar el chat: ${error.message}`);
         }
     }
 
@@ -311,23 +396,5 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.MathJax) {
             MathJax.typesetPromise([messageContent]);
         }
-    }
-
-    function loadChat(chatId) {
-        fetch(`/load-chat/${chatId}`)
-            .then(response => response.json())
-            .then(data => {
-                currentChatId = chatId;
-                chatContainer.innerHTML = '';
-                updateActiveChat(chatId);
-                if (data.messages && data.messages.length > 0) {
-                    data.messages.forEach(msg => {
-                        addMessageToChat(msg.role, msg.content);
-                    });
-                } else {
-                    // Si no hay mensajes, mostrar mensaje de bienvenida
-                    addMessageToChat('ai', '¡Hola! Soy tu asistente de IA. ¿En qué puedo ayudarte hoy?');
-                }
-            });
     }
 });

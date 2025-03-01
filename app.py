@@ -42,10 +42,17 @@ def save_chat():
     try:
         data = request.get_json()
         chat_id = str(uuid.uuid4())
+        
+        # Usar los primeros 30 caracteres del mensaje como título
+        title = data.get('message', 'Nuevo Chat')
+        if len(title) > 30:
+            title = title[:27] + '...'
+            
         chat_data = {
             'id': chat_id,
-            'title': data.get('message', 'Nuevo Chat'),
-            'messages': []
+            'title': title,
+            'messages': [],
+            'created_at': datetime.now().isoformat()
         }
         
         # Crear el directorio de chats si no existe
@@ -58,6 +65,33 @@ def save_chat():
         
         return jsonify({'chatId': chat_id, 'title': chat_data['title']})
     except Exception as e:
+        print(f"Error al guardar el chat: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/update-chat-title/<chat_id>', methods=['POST'])
+def update_chat_title(chat_id):
+    try:
+        data = request.get_json()
+        new_title = data.get('title', '')
+        
+        if not new_title:
+            return jsonify({'error': 'No title provided'}), 400
+            
+        chat_file = f'chats/{chat_id}.json'
+        if not os.path.exists(chat_file):
+            return jsonify({'error': 'Chat not found'}), 404
+            
+        with open(chat_file, 'r', encoding='utf-8') as f:
+            chat_data = json.load(f)
+            
+        chat_data['title'] = new_title
+        
+        with open(chat_file, 'w', encoding='utf-8') as f:
+            json.dump(chat_data, f, ensure_ascii=False, indent=2)
+            
+        return jsonify({'success': True, 'title': new_title})
+    except Exception as e:
+        print(f"Error al actualizar el título: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/load-chats', methods=['GET'])
@@ -71,10 +105,14 @@ def load_chats():
                         chat_data = json.load(f)
                         chats.append({
                             'id': chat_data['id'],
-                            'title': chat_data['title']
+                            'title': chat_data['title'],
+                            'created_at': chat_data.get('created_at', '')
                         })
+        # Ordenar chats por fecha de creación, más recientes primero
+        chats.sort(key=lambda x: x['created_at'], reverse=True)
         return jsonify({'chats': chats})
     except Exception as e:
+        print(f"Error al cargar los chats: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/load-chat/<chat_id>', methods=['GET'])
@@ -87,6 +125,7 @@ def load_chat(chat_id):
                 return jsonify(chat_data)
         return jsonify({'error': 'Chat not found'}), 404
     except Exception as e:
+        print(f"Error al cargar el chat: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/delete-chat/<chat_id>', methods=['DELETE'])
@@ -98,6 +137,7 @@ def delete_chat(chat_id):
             return jsonify({'success': True})
         return jsonify({'error': 'Chat not found'}), 404
     except Exception as e:
+        print(f"Error al eliminar el chat: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/chat', methods=['POST'])
