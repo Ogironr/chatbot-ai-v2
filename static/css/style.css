@@ -175,6 +175,7 @@ body {
     padding: 0 20px;
 }
 
+/* Markdown Styles */
 .message-content pre {
     background-color: var(--message-bg-user) !important;
     border-radius: 6px;
@@ -199,6 +200,42 @@ body {
 
 .message-content a:hover {
     text-decoration: underline;
+}
+
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+    font-weight: bold;
+    margin: 1em 0 0.5em;
+    color: var(--text-color);
+}
+
+.message-content ul,
+.message-content ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.message-content ul {
+    list-style-type: disc;
+}
+
+.message-content ol {
+    list-style-type: decimal;
+}
+
+.message-content li {
+    margin: 0.25em 0;
+}
+
+.message-content blockquote {
+    border-left: 4px solid var(--border-color);
+    padding-left: 1em;
+    margin: 1em 0;
+    font-style: italic;
 }
 
 .input-container {
@@ -287,94 +324,4 @@ button[type="submit"]:hover {
 .hljs {
     background: var(--message-bg-user) !important;
     color: var(--text-color) !important;
-}
-
-/* Table Styles */
-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 10px 0;
-}
-
-th, td {
-    border: 1px solid var(--border-color);
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background-color: var(--message-bg-ai);
-}
-
-/* Link Styles */
-a {
-    color: #2d7bd4;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-/* Estilos para el contenido Markdown */
-.message-content {
-    line-height: 1.5;
-    white-space: pre-wrap;
-}
-
-.message-content h1,
-.message-content h2,
-.message-content h3,
-.message-content h4,
-.message-content h5,
-.message-content h6 {
-    margin: 1em 0 0.5em;
-    color: #fff;
-}
-
-.message-content ul,
-.message-content ol {
-    margin: 0.5em 0;
-    padding-left: 2em;
-}
-
-.message-content li {
-    margin: 0.3em 0;
-}
-
-.message-content table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1em 0;
-}
-
-.message-content th,
-.message-content td {
-    border: 1px solid #4a4a4a;
-    padding: 0.5em;
-    text-align: left;
-}
-
-.message-content th {
-    background-color: #2d2d2d;
-}
-
-.message-content blockquote {
-    border-left: 4px solid #4a4a4a;
-    margin: 1em 0;
-    padding-left: 1em;
-    color: #a8a8a8;
-}
-
-.message-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-    margin: 1em 0;
-}
-
-.message-content hr {
-    border: none;
-    border-top: 1px solid #4a4a4a;
-    margin: 1em 0;
 }

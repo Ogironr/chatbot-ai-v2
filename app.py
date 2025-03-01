@@ -43,6 +43,10 @@ def save_chat():
         data = request.get_json()
         chat_id = str(uuid.uuid4())
         
+        # Crear el directorio de chats si no existe
+        if not os.path.exists('chats'):
+            os.makedirs('chats')
+        
         # Usar los primeros 30 caracteres del mensaje como título
         title = data.get('message', 'Nuevo Chat')
         if len(title) > 30:
@@ -55,15 +59,19 @@ def save_chat():
             'created_at': datetime.now().isoformat()
         }
         
-        # Crear el directorio de chats si no existe
-        if not os.path.exists('chats'):
-            os.makedirs('chats')
-        
         # Guardar el chat
-        with open(f'chats/{chat_id}.json', 'w', encoding='utf-8') as f:
+        chat_file = f'chats/{chat_id}.json'
+        with open(chat_file, 'w', encoding='utf-8') as f:
             json.dump(chat_data, f, ensure_ascii=False, indent=2)
         
-        return jsonify({'chatId': chat_id, 'title': chat_data['title']})
+        # Verificar que el archivo se creó correctamente
+        if not os.path.exists(chat_file):
+            raise Exception('Error al crear el archivo del chat')
+            
+        return jsonify({
+            'chatId': chat_id,
+            'title': chat_data['title']
+        })
     except Exception as e:
         print(f"Error al guardar el chat: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -179,15 +187,18 @@ def chat():
             })
         
         try:
+            print("Enviando solicitud a OpenAI...")
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=api_messages,
                 temperature=0.7,
                 max_tokens=2000
             )
+            print("Respuesta recibida de OpenAI")
             
             # Obtener la respuesta del asistente
             assistant_message = response.choices[0].message.content
+            print(f"Mensaje del asistente: {assistant_message[:100]}...")  # Mostrar los primeros 100 caracteres
             
             # Guardar en el historial como 'ai' para mantener consistencia en el frontend
             chat_data['messages'].append({
@@ -199,9 +210,9 @@ def chat():
             with open(chat_file, 'w', encoding='utf-8') as f:
                 json.dump(chat_data, f, ensure_ascii=False, indent=2)
             
+            print("Enviando respuesta al frontend...")
             return jsonify({
-                'message': assistant_message,
-                'chatId': chat_id
+                'response': assistant_message
             })
             
         except Exception as e:

@@ -1,15 +1,56 @@
 # ChatBot AI
 
-Un chatbot basado en la API de OpenAI GPT-3.5-turbo con una interfaz similar a ChatGPT.
+Un chatbot basado en la API de OpenAI, construido con Flask.
+
+## Estructura del Proyecto
+
+```
+chatopenai/
+├── .env                # Variables de entorno (API keys, etc.)
+├── app.py             # Aplicación principal Flask
+├── requirements.txt   # Dependencias de Python
+├── static/           # Archivos estáticos
+│   ├── css/         # Estilos CSS
+│   └── js/          # JavaScript
+├── templates/        # Plantillas HTML
+│   └── index.html   # Página principal
+└── chats/           # Almacenamiento de chats (JSON)
+```
+
+## Configuración
+
+1. Crear un entorno virtual:
+```bash
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+```
+
+2. Instalar dependencias:
+```bash
+pip install -r requirements.txt
+```
+
+3. Configurar variables de entorno:
+Crear un archivo `.env` con:
+```
+OPENAI_API_KEY=tu_api_key_aqui
+```
+
+## Ejecutar la Aplicación
+
+```bash
+python app.py
+```
+
+La aplicación estará disponible en `http://localhost:5000`
 
 ## Características
 
-- Interfaz de usuario moderna y responsive
-- Soporte para múltiples chats
-- Historial de conversaciones
-- Formato Markdown para mensajes
-- Resaltado de código
-- Tema oscuro
+- Interfaz de chat en tiempo real
+- Almacenamiento persistente de conversaciones
+- Soporte para markdown y resaltado de código
+- Historial de chats
+- Edición de títulos de chat
 
 ## Requisitos
 
@@ -40,22 +81,6 @@ OPENAI_API_KEY=tu-api-key-aquí
 4. Ejecutar la aplicación:
 ```bash
 python app.py
-```
-
-## Estructura del Proyecto
-
-```
-chatopenai/
-├── app.py              # Servidor Flask y lógica backend
-├── requirements.txt    # Dependencias del proyecto
-├── static/
-│   ├── css/
-│   │   └── style.css  # Estilos de la aplicación
-│   └── js/
-│       └── main.js    # Lógica frontend
-├── templates/
-│   └── index.html     # Plantilla principal
-└── chats/             # Almacenamiento de chats (JSON)
 ```
 
 ## Desarrollo
