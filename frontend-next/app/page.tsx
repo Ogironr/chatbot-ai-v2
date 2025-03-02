@@ -74,7 +74,7 @@ export default function ChatInterface() {
   const loadSavedChats = async () => {
     try {
       console.log('Cargando chats...');
-      const response = await fetch('/api/load-chats')
+      const response = await fetch('http://localhost:5000/api/load-chats')
       const data = await response.json()
       console.log('Chats cargados:', data)
 
@@ -94,7 +94,7 @@ export default function ChatInterface() {
   const loadChat = async (chatId: string) => {
     try {
       setCurrentChatId(chatId)
-      const response = await fetch(`/api/load-chat/${chatId}`)
+      const response = await fetch(`http://localhost:5000/api/load-chat/${chatId}`)
       const data = await response.json()
       setMessages(data.messages || [])
     } catch (error) {
@@ -105,7 +105,7 @@ export default function ChatInterface() {
   const createNewChat = async () => {
     try {
       console.log('Creando nuevo chat...');
-      const response = await fetch('/api/save-chat', {
+      const response = await fetch('http://localhost:5000/api/save-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: 'Nuevo Chat' })
@@ -132,7 +132,7 @@ export default function ChatInterface() {
 
   const deleteChat = async (chatId: string) => {
     try {
-      const response = await fetch(`/api/delete-chat/${chatId}`, {
+      const response = await fetch(`http://localhost:5000/api/delete-chat/${chatId}`, {
         method: 'DELETE'
       });
 
@@ -168,7 +168,7 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -193,7 +193,7 @@ export default function ChatInterface() {
           setChats((prev) => prev.map((chat) => (chat.id === currentChatId ? { ...chat, title: shortTitle } : chat)))
           
           // Actualizar título en el servidor
-          await fetch(`/api/update-chat-title/${currentChatId}`, {
+          await fetch(`http://localhost:5000/api/update-chat-title/${currentChatId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: shortTitle })
