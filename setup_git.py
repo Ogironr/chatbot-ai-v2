@@ -22,6 +22,14 @@ def main():
     print("\n🚀 Configurando repositorio Git...\n")
     
     try:
+        # Agregar cambios
+        run_command('git add .')
+        print("✓ Cambios agregados al stage")
+        
+        # Crear commit
+        run_command('git commit -m "Actualización del proyecto"')
+        print("✓ Commit creado")
+        
         # Verificar si el remoto ya existe
         try:
             run_command('git remote remove origin')
